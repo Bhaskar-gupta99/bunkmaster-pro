@@ -3,1211 +3,737 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BunkMaster Pro - Universal Attendance Cloud</title>
-  <meta name="theme-color" content="#08090d" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <!-- In-Browser OCR Engine -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <title>BunkMaster Pro — Universal Attendance, Routine & Streak</title>
+  <meta name="theme-color" content="#0a0f1d" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg>" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     :root {
-      --bg: #08090d;
-      --surface: #0f111a;
-      --surface-border: #1a1e2e;
-      --surface-hover: #161a29;
+      --bg: #0a0f1d;
+      --surface: #111827;
+      --surface-card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
       --accent: #38bdf8;
       --accent-glow: rgba(56, 189, 248, 0.15);
       --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.12);
       --danger: #f43f5e;
-      --danger-bg: rgba(244, 63, 94, 0.12);
-      --warning: #f59e0b;
-      --text-main: #f8fafc;
-      --text-muted: #8492a6;
-      --text-dim: #475569;
+      --fire: #f97316;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      -webkit-font-smoothing: antialiased;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; width: 100vw; overflow-x: hidden; padding: 14px 20px; }
+    .app-container { width: 100%; max-width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; width: 100%; }
+    .brand-wrap { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-glow); border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+    h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    p.subtitle { font-size: 13px; color: var(--text-dim); }
+
+    /* Duolingo Style Fire Flame Animation */
+    @keyframes flamePulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.5)); }
+      50% { transform: scale(1.22); filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.9)); }
+      100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.5)); }
     }
 
-    body {
-      background: var(--bg);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 20px 16px 80px;
-    }
-
-    /* AUTH SCREEN - Minimal Google + Course */
-    .auth-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg);
-      z-index: 2000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .auth-card {
-      width: 100%;
-      max-width: 420px;
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: 24px;
-      padding: 32px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
-    }
-
-    .auth-brand {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .auth-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #38bdf8, #6366f1);
+    .streak-badge {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.4);
-    }
-
-    .auth-brand h2 {
-      font-size: 1.45rem;
+      gap: 7px;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(239, 68, 68, 0.15));
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      padding: 6px 14px;
+      border-radius: 30px;
       font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .auth-brand p {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    /* Google Button */
-    .btn-google {
-      background: #ffffff;
-      color: #1f2937;
-      border: 1px solid #e5e7eb;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.88rem;
+      color: #fb923c;
+      font-size: 13px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.2s ease;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+    .streak-badge:active { transform: scale(0.95); }
+    .streak-fire-icon { display: inline-block; animation: flamePulse 1.5s infinite ease-in-out; font-size: 16px; }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .user-pill { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 6px 14px; border-radius: 30px; font-size: 13px; }
+    .user-pill button { background: none; border: none; color: var(--danger); font-weight: 700; cursor: pointer; }
+
+    /* Fluid Desktop Layout: Edge-to-Edge Without Gaps */
+    .dashboard-layout { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; }
+    @media (min-width: 1024px) {
+      .dashboard-layout { grid-template-columns: 380px 1fr; align-items: start; }
+      .sidebar-sticky { position: sticky; top: 14px; display: flex; flex-direction: column; gap: 16px; }
     }
 
-    .btn-google:hover {
-      background: #f3f4f6;
-      transform: translateY(-1px);
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); width: 100%; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--accent); display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .card-title span { display: flex; align-items: center; gap: 8px; }
 
-    .btn-google svg {
-      width: 18px;
-      height: 18px;
-      transform: none;
-    }
+    .select-stack { display: flex; flex-direction: column; gap: 10px; }
+    select, input[type="text"] { background: var(--surface-card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 12px; font-size: 13px; outline: none; width: 100%; }
+    select:focus, input:focus { border-color: var(--accent); }
 
-    .auth-divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-dim);
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+    .btn-primary { background: var(--accent); color: #000; font-weight: 700; border: none; padding: 11px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: 0.2s; }
+    .btn-primary:hover { opacity: 0.9; }
 
-    .auth-divider::before, .auth-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--surface-border);
-    }
+    /* Aggregate Stats Box */
+    .stats-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .stats-top { display: flex; justify-content: space-between; align-items: center; }
+    .overall-pct { font-size: 40px; font-weight: 800; line-height: 1; }
+    .pill { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+    .pill.safe { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+    .pill.danger { background: rgba(244, 63, 94, 0.15); color: var(--danger); border: 1px solid var(--danger); }
 
-    /* MAIN APP SHELL */
-    .app-shell {
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 10px; text-align: center; }
+    .stat-item .label { font-size: 11px; color: var(--text-dim); }
+    .stat-item .val { font-size: 18px; font-weight: 800; margin-top: 4px; }
 
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 4px;
-    }
+    .threshold-wrap { display: flex; justify-content: space-between; align-items: center; font-size: 13px; background: var(--surface); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); }
+    .threshold-wrap input[type="range"] { accent-color: var(--accent); cursor: pointer; }
 
-    .brand-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .photo-preview-wrap { width: 100%; height: 150px; border: 2px dashed var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; cursor: pointer; overflow: hidden; background: var(--surface-card); }
+    .photo-preview-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .btn-icon-danger { background: none; border: none; color: var(--text-dim); cursor: pointer; }
+    .btn-icon-danger:hover { color: var(--danger); }
 
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #38bdf8, #6366f1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
-      flex-shrink: 0;
-    }
+    /* Routine View */
+    .routine-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 20px; width: 100%; }
+    .day-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
+    .day-tab { background: var(--surface-card); border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .day-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-    .user-greeting h3 {
-      font-size: 1.05rem;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      color: var(--text-main);
-    }
-
-    .user-badge {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--accent);
-      background: var(--accent-glow);
-      padding: 2px 8px;
-      border-radius: 6px;
-      margin-top: 2px;
-      display: inline-block;
-      max-width: 220px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .nav-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-nav {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      color: var(--text-main);
-      padding: 7px 12px;
-      border-radius: 10px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.2s ease;
-    }
-
-    .btn-nav:hover {
-      background: var(--surface-hover);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .btn-share {
-      background: linear-gradient(135deg, #0284c7, #4f46e5);
-      border: none;
-      color: #fff;
-    }
-
-    /* Shared By Banner */
-    .shared-banner {
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 0.75rem;
-      color: var(--accent);
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    /* Gamification Ribbon */
-    .status-ribbon {
-      background: linear-gradient(145deg, #111422, #0d0f1a);
-      border: 1px solid var(--surface-border);
-      border-radius: 18px;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    }
-
-    .streak-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .streak-fire {
-      font-size: 1.8rem;
-      filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4));
-    }
-
-    .streak-meta h4 {
-      font-size: 0.92rem;
-      font-weight: 800;
-      color: #f59e0b;
-    }
-
-    .streak-meta p {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .rank-pill {
-      text-align: right;
-    }
-
-    .rank-tag {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      color: #a5b4fc;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 8px;
-      display: inline-block;
-    }
-
-    .coin-display {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--accent);
-      margin-top: 4px;
-      font-weight: 600;
-    }
-
-    /* Hero Overall Card */
-    .hero-stat-card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: 20px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .ring-wrapper {
-      width: 110px;
-      height: 110px;
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    svg {
-      transform: rotate(-90deg);
-      width: 100%;
-      height: 100%;
-    }
-
-    circle {
-      fill: none;
-      stroke-width: 10;
-      stroke-linecap: round;
-    }
-
-    .circle-bg { stroke: #161a29; }
-    .circle-fill {
-      stroke: var(--success);
-      stroke-dasharray: 283;
-      stroke-dashoffset: 283;
-      transition: stroke-dashoffset 0.6s ease, stroke 0.4s ease;
-    }
-
-    .ring-data {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-
-    .ring-data .score {
-      font-size: 1.55rem;
-      font-weight: 800;
-      letter-spacing: -1px;
-    }
-
-    .ring-data .sublabel {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 0.5px;
-    }
-
-    .stat-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .stat-content h3 { font-size: 1rem; font-weight: 700; }
-    .stat-caption { font-size: 0.82rem; line-height: 1.4; font-weight: 500; color: var(--text-muted); }
-
-    /* Simulator */
-    .simulator-card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: 18px;
-      padding: 16px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .sim-header { display: flex; justify-content: space-between; align-items: center; }
-    .sim-title { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .sim-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; background: #1e2438; color: var(--accent); font-weight: 700; }
-    .slider-track { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 6px; background: #1e2438; outline: none; }
-    .slider-track::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
-    .sim-result { font-size: 0.78rem; color: var(--text-muted); }
+    .today-periods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; width: 100%; }
+    .period-card { background: var(--surface-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+    .period-time { font-size: 11px; color: var(--accent); font-weight: 700; }
+    .period-name { font-size: 14px; font-weight: 700; }
+    .period-actions { display: flex; gap: 8px; }
+    .period-btn { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--surface); color: var(--text); }
+    .period-btn.btn-p:hover { background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: var(--success); }
+    .period-btn.btn-b:hover { background: rgba(244, 63, 94, 0.2); color: var(--danger); border-color: var(--danger); }
+    .period-del { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--text-dim); cursor: pointer; }
+    .period-del:hover { color: var(--danger); }
 
     /* Subjects List */
-    .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
-    .section-head h3 { font-size: 0.85rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; }
-    .btn-add-sub { background: transparent; border: 1px dashed var(--text-dim); color: var(--text-muted); padding: 5px 12px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
-    .btn-add-sub:hover { border-color: var(--accent); color: var(--accent); }
+    .subjects-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .btn-add { background: transparent; border: 1px dashed var(--accent); color: var(--accent); padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .btn-add:hover { background: var(--accent-glow); }
 
-    .subject-list { display: flex; flex-direction: column; gap: 12px; }
-    .subject-card {
-      background: var(--surface);
-      border: 1px solid var(--surface-border);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+    .subjects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; width: 100%; }
+    .subject-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .subj-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .subj-name { font-weight: 700; font-size: 15px; }
+    .subj-runway { font-size: 12px; font-weight: 600; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+    .subj-runway.safe { color: var(--success); }
+    .subj-runway.danger { color: var(--danger); }
 
-    .sub-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .sub-name-group h4 { font-size: 0.96rem; font-weight: 700; color: #fff; }
-    .sub-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--text-dim); margin-top: 2px; display: flex; align-items: center; gap: 8px; }
-    .sub-right { display: flex; align-items: center; gap: 8px; }
-    .sub-score-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
-    .btn-icon-sub { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; padding: 2px 4px; }
-    .btn-icon-sub:hover { color: var(--text-main); }
-    .sub-progress-track { width: 100%; height: 6px; background: #171a28; border-radius: 10px; overflow: hidden; }
-    .sub-progress-bar { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
-    .sub-bottom { display: flex; justify-content: space-between; align-items: center; }
-    .sub-runway-text { font-size: 0.76rem; font-weight: 600; }
-    .action-controls { display: flex; gap: 6px; }
-    .btn-action { border: none; padding: 7px 12px; border-radius: 8px; font-size: 0.74rem; font-weight: 700; cursor: pointer; }
-    .btn-action:active { transform: scale(0.96); }
-    .btn-present { background: #0284c7; color: #fff; }
-    .btn-bunk { background: #1f2438; color: #cbd5e1; border: 1px solid #2d3550; }
+    .progress-bar-bg { width: 100%; height: 7px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; transition: width 0.3s ease; border-radius: 999px; }
 
-    /* Modal Architecture */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(3, 4, 7, 0.85);
-      backdrop-filter: blur(8px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-      z-index: 1000;
-    }
+    .counter-row { display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.05); }
+    .counter-badge { font-size: 12px; color: var(--text-dim); }
+    .actions { display: flex; gap: 6px; align-items: center; }
+    .btn-action { background: var(--surface-card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 4px; }
 
-    .modal-overlay.active { display: flex; }
-    .modal-card {
-      width: 100%;
-      max-width: 460px;
-      background: #0f111a;
-      border: 1px solid #252b42;
-      border-radius: 20px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.8);
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .modal-head { display: flex; justify-content: space-between; align-items: center; }
-    .modal-head h3 { font-size: 1.15rem; font-weight: 800; }
-    .btn-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
-
-    .tab-pills { display: flex; background: #08090d; padding: 4px; border-radius: 12px; border: 1px solid #1a1e2e; }
-    .tab-pill { flex: 1; text-align: center; padding: 8px 0; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); cursor: pointer; }
-    .tab-pill.active { background: #181d2e; color: var(--accent); }
-
-    .input-field { display: flex; flex-direction: column; gap: 6px; }
-    .input-field label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .input-field input, .input-field select, .input-field textarea {
-      background: #08090d;
-      border: 1px solid #1e2438;
-      border-radius: 10px;
-      padding: 11px 12px;
-      color: #fff;
-      font-size: 0.85rem;
-      outline: none;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #0284c7, #4f46e5);
-      border: none;
-      color: #fff;
-      padding: 13px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .ocr-drop-box {
-      border: 2px dashed #2d3550;
-      border-radius: 14px;
-      padding: 24px 16px;
-      text-align: center;
-      cursor: pointer;
-      background: rgba(15, 17, 26, 0.5);
-    }
-
-    .ocr-drop-box span { font-size: 2rem; display: block; margin-bottom: 8px; }
-    .ocr-progress-banner { display: none; background: #181d2e; border: 1px solid #2d3550; border-radius: 10px; padding: 10px; font-size: 0.78rem; color: var(--accent); text-align: center; }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      background: #1e293b;
-      color: #fff;
-      border: 1px solid #334155;
-      padding: 10px 18px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      display: none;
-      z-index: 3000;
-    }
+    /* Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 999; padding: 16px; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 440px; width: 100%; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .full-image-modal img { max-width: 90vw; max-height: 85vh; border-radius: 8px; object-fit: contain; }
   </style>
 </head>
 <body>
-
-  <!-- AUTH / GATEKEEPER SCREEN (Clean Google + Course Login) -->
-  <div class="auth-overlay" id="authScreen">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <div class="auth-icon">⚡</div>
-        <h2>BunkMaster Pro</h2>
-        <p>Zero-friction attendance cloud for college students</p>
-      </div>
-
-      <!-- Quick Google Button -->
-      <button class="btn-google" onclick="triggerGoogleOneTap()">
-        <svg viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-        </svg>
-        Continue with Google
-      </button>
-
-      <div class="auth-divider">or enter details</div>
-
-      <div class="input-field">
-        <label>Student Full Name</label>
-        <input type="text" id="authName" placeholder="e.g. Aryan Sharma" />
-      </div>
-
-      <div class="input-field">
-        <label>Select Course / Degree</label>
-        <select id="authDegree">
-          <option value="B.Tech CSE">B.Tech - Computer Science</option>
-          <option value="B.Tech (Other)">B.Tech - Other Branches</option>
-          <option value="BCA">BCA (Computer Applications)</option>
-          <option value="BBA">BBA / MBA (Management)</option>
-          <option value="Law (BA LLB)">Law (BA LLB / LLB)</option>
-          <option value="B.Sc Nursing">B.Sc Nursing / Healthcare</option>
-          <option value="B.Pharm">B.Pharm (Pharmacy)</option>
-          <option value="B.Sc / M.Sc">B.Sc / M.Sc</option>
-          <option value="B.Com">B.Com / Finance</option>
-          <option value="BA">BA (Arts / Humanities)</option>
-        </select>
-      </div>
-
-      <button class="btn-primary" onclick="handleStudentAuth()">🚀 Open Dashboard</button>
-    </div>
-  </div>
-
-  <!-- MAIN DASHBOARD -->
-  <div class="app-shell" id="mainDashboard">
-
-    <!-- Top Bar with Student Name & Avatar -->
-    <header class="nav-bar">
-      <div class="brand-group">
-        <div class="user-avatar" id="avatarInitial">A</div>
-        <div class="user-greeting">
-          <h3 id="displayStudentName">Aryan Sharma</h3>
-          <div class="user-badge" id="displayDegree">B.Tech CSE</div>
+  <div class="app-container">
+    <header>
+      <div class="brand-wrap">
+        <div class="brand-icon"><i data-lucide="calendar-check"></i></div>
+        <div>
+          <h1>BunkMaster Pro</h1>
+          <p class="subtitle" id="selectedCollegeDisplay">Universal Attendance & Timetable Manager</p>
         </div>
       </div>
-      <div class="nav-actions">
-        <button class="btn-nav btn-share" onclick="shareClassLink()">🔗 Share</button>
-        <button class="btn-nav" onclick="openSyncModal()">⚙️ Timetable</button>
+
+      <div class="header-actions">
+        <div class="streak-badge" id="streakBadge" onclick="manualEditStreak()" title="Click to edit/set streak value">
+          <span class="streak-fire-icon">🔥</span>
+          <span id="streakCount">1</span> Day Streak
+        </div>
+
+        <div id="authArea">
+          <button class="btn-primary" onclick="openLoginModal()" style="width:auto; padding:6px 16px;">
+            <i data-lucide="log-in" style="width:14px;"></i> Student Login
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Shared By Banner (Shown when loaded from link) -->
-    <div class="shared-banner" id="sharedBanner">
-      <span id="sharedBannerText">Schedule shared by class friend</span>
-      <span style="font-weight: 800; cursor: pointer;" onclick="document.getElementById('sharedBanner').style.display='none'">✕</span>
-    </div>
+    <div class="dashboard-layout">
+      <!-- Left Sidebar -->
+      <div class="sidebar-sticky">
+        <div class="card">
+          <div class="card-title">
+            <span><i data-lucide="graduation-cap" style="width:16px;"></i> College & Course Selector</span>
+          </div>
+          <div class="select-stack">
+            <select id="collegeSelect">
+              <optgroup label="NCR & AKTU Hub">
+                <option value="kiet" selected>KIET Group of Institutions (Ghaziabad)</option>
+                <option value="galgotias">Galgotias (GCET / GU Greater Noida)</option>
+                <option value="abes">ABES Engineering College (Ghaziabad)</option>
+                <option value="jss">JSS Academy of Tech Education (Noida)</option>
+                <option value="akgec">AKGEC (Ghaziabad)</option>
+                <option value="gl_bajaj">GL Bajaj Inst of Tech (Gr. Noida)</option>
+              </optgroup>
+              <optgroup label="Chandigarh Region">
+                <option value="cu">Chandigarh University (CU)</option>
+                <option value="chitkara">Chitkara University (Punjab/HP)</option>
+                <option value="pec">PEC Chandigarh</option>
+                <option value="uiet">UIET Panjab University</option>
+              </optgroup>
+              <optgroup label="Uttarakhand / Dehradun">
+                <option value="graphic_era">Graphic Era (GEU / GEHU Dehradun)</option>
+                <option value="dit">DIT University (Dehradun)</option>
+                <option value="upes">UPES Dehradun</option>
+                <option value="utu">UTU / Veer Madho Singh Bhandari</option>
+              </optgroup>
+            </select>
 
-    <!-- Gamification Status Banner -->
-    <div class="status-ribbon">
-      <div class="streak-container">
-        <div class="streak-fire">🔥</div>
-        <div class="streak-meta">
-          <h4 id="streakDisplay">5-Day Attendance Streak</h4>
-          <p id="streakSubtitle">Welcome back! You're ahead of target</p>
+            <select id="courseSelect">
+              <optgroup label="Tech & IT Programs">
+                <option value="btech_cse" selected>B.Tech — Computer Science / IT / AI</option>
+                <option value="bca">BCA (Bachelor of Computer Applications)</option>
+                <option value="mca">MCA (Master of Computer Applications)</option>
+                <option value="mtech">M.Tech (Computer Science & Engg)</option>
+                <option value="bsc_cs">B.Sc — Computer Science / IT</option>
+              </optgroup>
+              <optgroup label="Pharmacy & Medicine">
+                <option value="bpharm">B.Pharm (Bachelor of Pharmacy)</option>
+                <option value="dpharm">D.Pharm (Diploma in Pharmacy)</option>
+              </optgroup>
+              <optgroup label="Management & Commerce">
+                <option value="bba">BBA (Bachelor of Business Admin)</option>
+                <option value="mba">MBA (Master of Business Admin)</option>
+              </optgroup>
+            </select>
+
+            <button class="btn-primary" onclick="loadCoursePreset()">
+              <i data-lucide="refresh-cw" style="width:14px;"></i> Load Subjects & Routine
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="rank-pill">
-        <div class="rank-tag" id="standingTag">Dean's Pet 🎓</div>
-        <div class="coin-display" id="coinBalance">🪙 8 Bunk Credits</div>
-      </div>
-    </div>
 
-    <!-- Overall Attendance Card -->
-    <div class="hero-stat-card">
-      <div class="ring-wrapper">
-        <svg viewBox="0 0 100 100">
-          <circle class="circle-bg" cx="50" cy="50" r="45" />
-          <circle class="circle-fill" id="aggregateRing" cx="50" cy="50" r="45" />
-        </svg>
-        <div class="ring-data">
-          <div class="score" id="aggregatePercentage">0%</div>
-          <div class="sublabel">OVERALL</div>
+        <!-- Timetable Photo Preview -->
+        <div class="card">
+          <div class="card-title">
+            <span><i data-lucide="image" style="width:16px;"></i> Timetable Photo</span>
+            <button class="btn-icon-danger" onclick="deleteTimetablePhoto()" title="Remove Image"><i data-lucide="trash-2" style="width:14px;"></i></button>
+          </div>
+          <input type="file" id="photoFileInput" accept="image/*" style="display:none;" onchange="uploadTimetablePhoto(this)">
+          <div class="photo-preview-wrap" id="photoPreviewContainer" onclick="handlePhotoBoxClick()">
+            <i data-lucide="upload-cloud" style="width:28px; color:var(--text-dim);"></i>
+            <span style="font-size:12px; color:var(--text-dim);">Click to Upload Timetable Pic</span>
+          </div>
         </div>
-      </div>
-      <div class="stat-content">
-        <h3>Attendance Runway</h3>
-        <p class="stat-caption" id="aggregateSummary">Analyzing attendance criteria...</p>
-      </div>
-    </div>
 
-    <!-- What-If Simulator -->
-    <div class="simulator-card">
-      <div class="sim-header">
-        <span class="sim-title">What-If Bunk Simulator</span>
-        <span class="sim-badge" id="simBunkCount">0 Classes Skipped</span>
-      </div>
-      <input type="range" class="slider-track" id="bunkSlider" min="0" max="15" value="0" oninput="runBunkSimulation(this.value)" />
-      <div class="sim-result" id="simForecast">
-        Slide to preview your attendance drop before skipping upcoming classes.
-      </div>
-    </div>
-
-    <!-- Active Courses Section -->
-    <div class="section-head">
-      <h3>Active Courses (<span id="courseCount">0</span>)</h3>
-      <button class="btn-add-sub" onclick="openCourseModal(null)">+ Add Course</button>
-    </div>
-
-    <div class="subject-list" id="subjectCatalog">
-      <!-- Subjects injected via JS -->
-    </div>
-
-  </div>
-
-  <!-- TIMETABLE SYNC MODAL -->
-  <div class="modal-overlay" id="syncModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3>Timetable & Course Setup</h3>
-        <button class="btn-close" onclick="closeSyncModal()">✕</button>
-      </div>
-
-      <div class="tab-pills">
-        <div class="tab-pill active" id="tabPresetBtn" onclick="switchSyncTab('preset')">Presets</div>
-        <div class="tab-pill" id="tabOcrBtn" onclick="switchSyncTab('ocr')">📸 Scan Image</div>
-        <div class="tab-pill" id="tabPasteBtn" onclick="switchSyncTab('paste')">Paste Text</div>
-        <div class="tab-pill" id="tabAnyBtn" onclick="switchSyncTab('any')">Settings</div>
-      </div>
-
-      <!-- TAB 1: Stream Presets -->
-      <div id="tabPreset" style="display: flex; flex-direction: column; gap: 14px;">
-        <div class="input-field">
-          <label>Course / Stream Template</label>
-          <select id="presetStreamSelect">
-            <option value="btech_cse">B.Tech - Computer Science (KCS)</option>
-            <option value="bca">BCA - Computer Applications</option>
-            <option value="bba">BBA / MBA - Management</option>
-            <option value="law">Law (BA LLB / Constitutional)</option>
-            <option value="nursing">B.Sc Nursing / Anatomy</option>
-            <option value="pharmacy">B.Pharm - Pharmacy</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="loadStreamPreset()">🚀 Load Stream Template</button>
-      </div>
-
-      <!-- TAB 2: OCR Screenshot Upload -->
-      <div id="tabOcr" style="display: none; flex-direction: column; gap: 14px;">
-        <div class="ocr-drop-box" onclick="document.getElementById('ocrFileInput').click()">
-          <span>📸</span>
-          <p><b>Upload Timetable Screenshot</b><br>or tap to browse gallery</p>
-          <input type="file" id="ocrFileInput" accept="image/*" style="display: none;" onchange="processScreenshot(event)" />
-        </div>
-        <div class="ocr-progress-banner" id="ocrStatus">
-          🧠 Extracting subjects from image... (0%)
+        <!-- Overall Score Card -->
+        <div class="stats-card">
+          <div class="stats-top">
+            <div>
+              <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase;">Overall Score</div>
+              <div class="overall-pct" id="aggregatePercent">0%</div>
+            </div>
+            <div class="pill safe" id="statusPill">
+              <i data-lucide="check-circle" style="width:14px;"></i> SAFE ZONE
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="label">Total Held</div>
+              <div class="val" id="totalClasses">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="label">Attended</div>
+              <div class="val" id="attendedClasses">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="label">Safe Bunks</div>
+              <div class="val" id="safeBunkCount" style="color:var(--accent);">0</div>
+            </div>
+          </div>
+          <div class="threshold-wrap">
+            <span>Target: <strong id="thresholdVal" style="color:var(--accent);">75%</strong></span>
+            <input type="range" id="thresholdRange" min="60" max="90" value="75" oninput="updateThreshold(this.value)">
+          </div>
         </div>
       </div>
 
-      <!-- TAB 3: Paste Schedule -->
-      <div id="tabPaste" style="display: none; flex-direction: column; gap: 14px;">
-        <div class="input-field">
-          <label>Paste Subjects from WhatsApp / Portal</label>
-          <textarea id="rawSubjectInput" rows="4" placeholder="Operating Systems, DBMS, Computer Networks, Discrete Mathematics"></textarea>
-        </div>
-        <button class="btn-primary" onclick="importRawSubjects()">Generate Courses</button>
-      </div>
+      <!-- Right Main Panel -->
+      <div style="width: 100%;">
+        <!-- Routine Box -->
+        <div class="routine-box">
+          <div class="card-title" style="margin-bottom:12px;">
+            <span><i data-lucide="clock" style="width:16px;"></i> Weekly Routine (<span id="activeDayText">Saturday</span>)</span>
+            <button class="btn-add" onclick="addPeriodToDay()" style="padding:4px 10px; font-size:12px;">
+              <i data-lucide="plus" style="width:13px;"></i> Add Period
+            </button>
+          </div>
 
-      <!-- TAB 4: Settings / Logout -->
-      <div id="tabAny" style="display: none; flex-direction: column; gap: 14px;">
-        <div class="input-field">
-          <label>Minimum Attendance Target (%)</label>
-          <select id="customTargetSelect" onchange="updateCriteria(this.value)">
-            <option value="75">75% (General Standard)</option>
-            <option value="80">80% (Nursing / Strict)</option>
-            <option value="85">85% (Scholarships)</option>
-          </select>
-        </div>
-        <button class="btn-primary" onclick="logoutStudent()">🚪 Switch Account / Logout</button>
-      </div>
-    </div>
-  </div>
+          <div class="day-tabs">
+            <div class="day-tab" onclick="switchDay('Mon')">Monday</div>
+            <div class="day-tab" onclick="switchDay('Tue')">Tuesday</div>
+            <div class="day-tab" onclick="switchDay('Wed')">Wednesday</div>
+            <div class="day-tab" onclick="switchDay('Thu')">Thursday</div>
+            <div class="day-tab" onclick="switchDay('Fri')">Friday</div>
+            <div class="day-tab" onclick="switchDay('Sat')">Saturday</div>
+          </div>
 
-  <!-- COURSE ADD / EDIT MODAL -->
-  <div class="modal-overlay" id="courseModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="courseModalTitle">Edit Course</h3>
-        <button class="btn-close" onclick="closeCourseModal()">✕</button>
-      </div>
-      <div class="input-field">
-        <label>Subject / Course Name</label>
-        <input type="text" id="courseNameInput" placeholder="e.g. Operating Systems" />
-      </div>
-      <div class="input-field">
-        <label>Course Code</label>
-        <input type="text" id="courseCodeInput" placeholder="e.g. KCS-401" />
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div class="input-field">
-          <label>Attended</label>
-          <input type="number" id="courseAttendedInput" min="0" />
+          <div id="periodsContainer" class="today-periods-grid"></div>
         </div>
-        <div class="input-field">
-          <label>Total Conducted</label>
-          <input type="number" id="courseTotalInput" min="1" />
+
+        <!-- Subjects Grid -->
+        <div class="subjects-header">
+          <h3>Total Enrolled Subjects (<span id="subjectCount">0</span>)</h3>
+          <button class="btn-add" onclick="addNewSubject()">
+            <i data-lucide="plus" style="width:15px;"></i> Add Subject
+          </button>
         </div>
+        <div id="subjectList" class="subjects-grid"></div>
       </div>
-      <button class="btn-primary" onclick="saveCourseDetail()">Save Course</button>
     </div>
   </div>
 
-  <div class="toast" id="toastMsg">Notification</div>
+  <!-- Login Modal -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+      <h2 style="font-size:18px; font-weight:800; color:var(--accent);">Student Login</h2>
+      <p style="font-size:12px; color:var(--text-dim);">Enter your info to link your attendance & streak.</p>
+      <input type="text" id="loginNameInput" placeholder="Student Full Name" />
+      <input type="text" id="loginRollInput" placeholder="Roll Number / University ID" />
+      <div style="display:flex; gap:8px;">
+        <button class="btn-primary" onclick="saveLogin()">Login</button>
+        <button class="btn-action" style="background:var(--surface-card);" onclick="closeLoginModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Photo Viewer Modal -->
+  <div class="modal-overlay" id="imageModal" onclick="this.style.display='none'">
+    <div class="full-image-modal">
+      <img id="enlargedPhoto" src="" alt="Full Timetable">
+    </div>
+  </div>
 
   <script>
-    let MINIMUM_CRITERIA = 75;
-    let currentUser = null;
-    let editIndex = null;
-
-    // Presets for various streams
-    const STREAM_PRESETS = {
-      btech_cse: [
-        { code: "KCS-301", name: "Data Structures & Algorithms", attended: 26, total: 30 },
-        { code: "KCS-302", name: "Computer Architecture", attended: 21, total: 28 },
-        { code: "KCS-303", name: "Discrete Mathematics", attended: 24, total: 30 },
-        { code: "KCS-351", name: "DSA Practical Lab", attended: 12, total: 12 }
-      ],
-      bca: [
-        { code: "BCA-201", name: "Database Management Systems", attended: 24, total: 28 },
-        { code: "BCA-202", name: "Object Oriented Java", attended: 26, total: 30 },
-        { code: "BCA-203", name: "Web Development Technologies", attended: 22, total: 26 },
-        { code: "BCA-204", name: "Numerical Methods", attended: 18, total: 24 }
-      ],
-      bba: [
-        { code: "BBA-301", name: "Organizational Behavior", attended: 25, total: 28 },
-        { code: "BBA-302", name: "Marketing Management", attended: 22, total: 26 },
-        { code: "BBA-303", name: "Financial Accounting", attended: 27, total: 30 },
-        { code: "BBA-304", name: "Business Law & Ethics", attended: 20, total: 24 }
-      ],
-      law: [
-        { code: "LAW-301", name: "Constitutional Law of India", attended: 28, total: 32 },
-        { code: "LAW-302", name: "Law of Crimes (IPC)", attended: 24, total: 28 },
-        { code: "LAW-303", name: "Family Law & Civil Procedures", attended: 21, total: 26 },
-        { code: "LAW-304", name: "Moot Court Training", attended: 14, total: 15 }
-      ],
-      nursing: [
-        { code: "NUR-201", name: "Applied Anatomy & Physiology", attended: 32, total: 36 },
-        { code: "NUR-202", name: "Nursing Foundation & Clinicals", attended: 38, total: 42 },
-        { code: "NUR-203", name: "Biochemistry & Nutrition", attended: 24, total: 28 },
-        { code: "NUR-204", name: "Medical-Surgical Nursing", attended: 30, total: 34 }
-      ],
-      pharmacy: [
-        { code: "BP-301", name: "Pharmaceutical Organic Chemistry", attended: 24, total: 28 },
-        { code: "BP-302", name: "Physical Pharmaceutics", attended: 22, total: 26 },
-        { code: "BP-303", name: "Pharmaceutical Microbiology", attended: 25, total: 30 }
-      ]
+    const COURSE_PRESETS = {
+      btech_cse: {
+        title: "B.Tech Computer Science",
+        subjects: ["Data Structures & Algorithms", "Operating Systems", "Computer Organization", "Discrete Mathematics", "Web Technology"],
+        routine: {
+          Mon: [ { time: "09:10 - 10:05 AM", subj: "Data Structures & Algorithms" }, { time: "10:05 - 11:00 AM", subj: "Computer Organization" } ],
+          Tue: [ { time: "09:10 - 10:05 AM", subj: "Operating Systems" }, { time: "11:50 - 12:45 PM", subj: "Discrete Mathematics" } ],
+          Wed: [ { time: "10:05 - 11:00 AM", subj: "Data Structures & Algorithms" }, { time: "01:35 - 03:25 PM", subj: "Web Technology" } ],
+          Thu: [ { time: "09:10 - 10:05 AM", subj: "Computer Organization" }, { time: "11:50 - 12:45 PM", subj: "Operating Systems" } ],
+          Fri: [ { time: "09:10 - 10:05 AM", subj: "Discrete Mathematics" }, { time: "11:50 - 12:45 PM", subj: "Web Technology" } ],
+          Sat: []
+        }
+      },
+      bca: {
+        title: "BCA (Bachelor of Computer Applications)",
+        subjects: ["C++ Programming & OOPs", "Database Management Systems", "Computer Network Architecture", "Web Design & HTML/CSS", "Numerical Aptitude"],
+        routine: {
+          Mon: [ { time: "09:30 - 10:30 AM", subj: "C++ Programming & OOPs" }, { time: "10:30 - 11:30 AM", subj: "Database Management Systems" } ],
+          Tue: [ { time: "11:30 - 12:30 PM", subj: "Computer Network Architecture" }, { time: "01:30 - 02:30 PM", subj: "Web Design & HTML/CSS" } ],
+          Wed: [ { time: "09:30 - 10:30 AM", subj: "Numerical Aptitude" } ],
+          Thu: [ { time: "11:30 - 12:30 PM", subj: "Database Management Systems" } ],
+          Fri: [ { time: "09:30 - 10:30 AM", subj: "Web Design & HTML/CSS" } ],
+          Sat: []
+        }
+      },
+      mca: {
+        title: "MCA (Master of Computer Applications)",
+        subjects: ["Advanced Data Structures", "Design Patterns & Java", "Cloud Computing & AWS", "AI & Machine Learning", "Software Project Management"],
+        routine: {
+          Mon: [ { time: "09:15 - 10:15 AM", subj: "Advanced Data Structures" }, { time: "10:15 - 11:15 AM", subj: "Design Patterns & Java" } ],
+          Tue: [ { time: "11:30 - 12:30 PM", subj: "Cloud Computing & AWS" } ],
+          Wed: [ { time: "09:15 - 10:15 AM", subj: "Software Project Management" } ],
+          Thu: [ { time: "11:30 - 12:30 PM", subj: "Design Patterns & Java" } ],
+          Fri: [ { time: "09:15 - 10:15 AM", subj: "AI & Machine Learning" } ],
+          Sat: []
+        }
+      },
+      bpharm: {
+        title: "B.Pharm (Bachelor of Pharmacy)",
+        subjects: ["Pharmaceutics & Formulation", "Pharmaceutical Chemistry", "Human Anatomy & Physiology", "Pharmacognosy", "Biochemistry"],
+        routine: {
+          Mon: [ { time: "09:00 - 10:00 AM", subj: "Pharmaceutics & Formulation" }, { time: "10:00 - 11:00 AM", subj: "Pharmaceutical Chemistry" } ],
+          Tue: [ { time: "11:15 - 12:15 PM", subj: "Human Anatomy & Physiology" } ],
+          Wed: [ { time: "09:00 - 10:00 AM", subj: "Biochemistry" } ],
+          Thu: [ { time: "11:15 - 12:15 PM", subj: "Pharmaceutical Chemistry" } ],
+          Fri: [ { time: "09:00 - 10:00 AM", subj: "Human Anatomy & Physiology" } ],
+          Sat: []
+        }
+      },
+      dpharm: {
+        title: "D.Pharm (Diploma in Pharmacy)",
+        subjects: ["Pharmaceutics I", "Pharmaceutical Chemistry I", "Pharmacognosy", "Biochemistry", "Health Education"],
+        routine: {
+          Mon: [ { time: "09:30 - 10:30 AM", subj: "Pharmaceutics I" }, { time: "10:30 - 11:30 AM", subj: "Pharmaceutical Chemistry I" } ],
+          Tue: [ { time: "11:30 - 12:30 PM", subj: "Pharmacognosy" } ],
+          Wed: [ { time: "09:30 - 10:30 AM", subj: "Biochemistry" } ],
+          Thu: [ { time: "10:30 - 11:30 AM", subj: "Health Education" } ],
+          Fri: [ { time: "09:30 - 10:30 AM", subj: "Pharmaceutics I" } ],
+          Sat: []
+        }
+      },
+      bba: {
+        title: "BBA (Bachelor of Business Administration)",
+        subjects: ["Principles of Management", "Business Economics", "Financial Accounting", "Marketing Management", "Organizational Behavior"],
+        routine: {
+          Mon: [ { time: "09:00 - 10:00 AM", subj: "Principles of Management" }, { time: "10:00 - 11:00 AM", subj: "Business Economics" } ],
+          Tue: [ { time: "11:00 - 12:00 PM", subj: "Financial Accounting" } ],
+          Wed: [ { time: "09:00 - 10:00 AM", subj: "Marketing Management" } ],
+          Thu: [ { time: "11:00 - 12:00 PM", subj: "Principles of Management" } ],
+          Fri: [ { time: "09:00 - 10:00 AM", subj: "Financial Accounting" } ],
+          Sat: []
+        }
+      },
+      mba: {
+        title: "MBA (Master of Business Administration)",
+        subjects: ["Strategic Management", "Corporate Finance", "Human Resource Strategy", "Business Analytics", "Operations Strategy"],
+        routine: {
+          Mon: [ { time: "09:30 - 10:30 AM", subj: "Strategic Management" }, { time: "10:30 - 11:30 AM", subj: "Corporate Finance" } ],
+          Tue: [ { time: "11:30 - 12:30 PM", subj: "Human Resource Strategy" } ],
+          Wed: [ { time: "09:30 - 10:30 AM", subj: "Operations Strategy" } ],
+          Thu: [ { time: "10:30 - 11:30 AM", subj: "Corporate Finance" } ],
+          Fri: [ { time: "09:30 - 10:30 AM", subj: "Strategic Management" } ],
+          Sat: []
+        }
+      }
     };
 
-    let courses = [];
+    let user = JSON.parse(localStorage.getItem('bm_user')) || null;
+    let selectedColKey = localStorage.getItem('bm_selected_col_key') || 'kiet';
+    let selectedCourseKey = localStorage.getItem('bm_selected_course_key') || 'btech_cse';
+    let timetablePhoto = localStorage.getItem('bm_tt_photo') || null;
+    let threshold = parseInt(localStorage.getItem('bm_threshold')) || 75;
 
-    // Check URL parameters for class-share import
-    function checkShareParams() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sharedData = urlParams.get('schedule');
-      if (sharedData) {
-        try {
-          const parsed = JSON.parse(decodeURIComponent(escape(atob(sharedData))));
-          if (parsed && parsed.courses) {
-            courses = parsed.courses;
-            const banner = document.getElementById("sharedBanner");
-            banner.style.display = "flex";
-            document.getElementById("sharedBannerText").innerText = `⚡ Shared by ${parsed.sender || 'a classmate'} (${parsed.degree || 'College'})`;
-            showToast("Imported Class Timetable from Link! 🔥");
-            window.history.replaceState({}, document.title, window.location.pathname);
-            return true;
-          }
-        } catch(e) {
-          console.error("Invalid share token", e);
-        }
-      }
-      return false;
-    }
+    let streak = parseInt(localStorage.getItem('bm_streak_count')) || 1;
+
+    let subjects = JSON.parse(localStorage.getItem('bm_subjects')) || 
+      COURSE_PRESETS[selectedCourseKey].subjects.map(s => ({ name: s, attended: 16, total: 20 }));
+
+    let routine = JSON.parse(localStorage.getItem('bm_routine')) || 
+      COURSE_PRESETS[selectedCourseKey].routine;
+
+    // Direct Live Day Detection
+    const dayMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const currentDayStr = dayMap[new Date().getDay()];
+    let activeDay = (currentDayStr === 'Sun') ? 'Mon' : currentDayStr;
 
     function init() {
-      const hasShared = checkShareParams();
-      const savedUser = localStorage.getItem("bm_user_auth_v6");
+      document.getElementById('collegeSelect').value = selectedColKey;
+      document.getElementById('courseSelect').value = selectedCourseKey;
+      updateHeaderTitle();
+      updateStreakDisplay();
 
-      if (!savedUser) {
-        document.getElementById("authScreen").style.display = "flex";
-      } else {
-        document.getElementById("authScreen").style.display = "none";
-        currentUser = JSON.parse(savedUser);
-        updateHeaderUser();
+      document.getElementById('thresholdRange').value = threshold;
+      document.getElementById('thresholdVal').innerText = threshold + "%";
 
-        if (!hasShared) {
-          const stored = localStorage.getItem("bm_courses_v6");
-          if (stored) {
-            courses = JSON.parse(stored);
-          } else {
-            loadDefaultCoursesForDegree(currentUser.degree);
-          }
-        }
-        renderDashboard();
+      renderAuth();
+      renderPhoto();
+      switchDay(activeDay);
+      render();
+    }
+
+    function updateHeaderTitle() {
+      const colText = document.getElementById('collegeSelect').selectedOptions[0].text;
+      const crsText = COURSE_PRESETS[selectedCourseKey] ? COURSE_PRESETS[selectedCourseKey].title : "Custom Course";
+      document.getElementById('selectedCollegeDisplay').innerText = `${colText} • ${crsText}`;
+    }
+
+    // Instant Fire Streak Increment
+    function bumpStreak() {
+      streak += 1;
+      localStorage.setItem('bm_streak_count', streak);
+      updateStreakDisplay();
+    }
+
+    function manualEditStreak() {
+      const input = prompt("Set custom Streak days:", streak);
+      if (input !== null && !isNaN(parseInt(input))) {
+        streak = Math.max(0, parseInt(input));
+        localStorage.setItem('bm_streak_count', streak);
+        updateStreakDisplay();
       }
     }
 
-    function updateHeaderUser() {
-      if (!currentUser) return;
-      document.getElementById("displayStudentName").innerText = currentUser.name;
-      document.getElementById("displayDegree").innerText = currentUser.degree;
-      document.getElementById("avatarInitial").innerText = currentUser.name.charAt(0).toUpperCase();
+    function updateStreakDisplay() {
+      document.getElementById('streakCount').innerText = streak;
     }
 
-    function loadDefaultCoursesForDegree(degree) {
-      if (degree.includes("Nursing")) courses = STREAM_PRESETS.nursing;
-      else if (degree.includes("Law")) courses = STREAM_PRESETS.law;
-      else if (degree.includes("BBA")) courses = STREAM_PRESETS.bba;
-      else if (degree.includes("B.Tech")) courses = STREAM_PRESETS.btech_cse;
-      else if (degree.includes("Pharm")) courses = STREAM_PRESETS.pharmacy;
-      else courses = STREAM_PRESETS.bca;
+    function loadCoursePreset() {
+      selectedColKey = document.getElementById('collegeSelect').value;
+      selectedCourseKey = document.getElementById('courseSelect').value;
+      const target = COURSE_PRESETS[selectedCourseKey] || COURSE_PRESETS.btech_cse;
+
+      subjects = target.subjects.map(s => ({ name: s, attended: 16, total: 20 }));
+      routine = target.routine;
+
+      localStorage.setItem('bm_selected_col_key', selectedColKey);
+      localStorage.setItem('bm_selected_course_key', selectedCourseKey);
+      updateHeaderTitle();
+      saveAll();
+      alert(`✅ Loaded: ${target.title} Routine & Subjects!`);
     }
 
-    // Google One-Tap / Fast Login
-    function triggerGoogleOneTap() {
-      const name = prompt("Enter your Google Account Name:", "Aryan Sharma");
-      if (!name) return;
-      const degree = document.getElementById("authDegree").value;
-      completeLogin(name.trim(), degree);
+    function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+    function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+    function saveLogin() {
+      const name = document.getElementById('loginNameInput').value.trim();
+      const roll = document.getElementById('loginRollInput').value.trim();
+      if (!name) return alert("Please enter your name!");
+      user = { name, roll };
+      localStorage.setItem('bm_user', JSON.stringify(user));
+      closeLoginModal();
+      renderAuth();
+    }
+    function logout() {
+      if (confirm("Logout current student?")) {
+        user = null;
+        localStorage.removeItem('bm_user');
+        renderAuth();
+      }
+    }
+    function renderAuth() {
+      const area = document.getElementById('authArea');
+      if (user) {
+        area.innerHTML = `
+          <div class="user-pill">
+            <i data-lucide="user-check" style="width:14px; color:var(--success);"></i>
+            <span><strong>${user.name}</strong> (${user.roll || 'Student'})</span>
+            <button onclick="logout()"><i data-lucide="log-out" style="width:13px; margin-left:6px;"></i></button>
+          </div>
+        `;
+      } else {
+        area.innerHTML = `
+          <button class="btn-primary" onclick="openLoginModal()" style="width:auto; padding:6px 16px;">
+            <i data-lucide="log-in" style="width:14px;"></i> Student Login
+          </button>
+        `;
+      }
+      if (window.lucide) lucide.createIcons();
     }
 
-    function handleStudentAuth() {
-      const name = document.getElementById("authName").value.trim();
-      const degree = document.getElementById("authDegree").value;
-      if (!name) {
-        alert("Please enter your name or use Continue with Google!");
+    function handlePhotoBoxClick() {
+      if (timetablePhoto) {
+        document.getElementById('enlargedPhoto').src = timetablePhoto;
+        document.getElementById('imageModal').style.display = 'flex';
+      } else {
+        document.getElementById('photoFileInput').click();
+      }
+    }
+    function uploadTimetablePhoto(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          timetablePhoto = e.target.result;
+          localStorage.setItem('bm_tt_photo', timetablePhoto);
+          renderPhoto();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    function deleteTimetablePhoto() {
+      if (timetablePhoto && confirm("Remove timetable photo?")) {
+        timetablePhoto = null;
+        localStorage.removeItem('bm_tt_photo');
+        renderPhoto();
+      }
+    }
+    function renderPhoto() {
+      const c = document.getElementById('photoPreviewContainer');
+      if (timetablePhoto) {
+        c.innerHTML = `<img src="${timetablePhoto}" alt="Timetable Pic" title="Click to view full screen" />`;
+      } else {
+        c.innerHTML = `
+          <i data-lucide="upload-cloud" style="width:28px; color:var(--text-dim);"></i>
+          <span style="font-size:12px; color:var(--text-dim);">Click to Upload Timetable Pic</span>
+        `;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function switchDay(day) {
+      activeDay = day;
+      const fullNames = { 
+        Mon: "Monday", 
+        Tue: "Tuesday", 
+        Wed: "Wednesday", 
+        Thu: "Thursday", 
+        Fri: "Friday",
+        Sat: "Saturday"
+      };
+      document.getElementById('activeDayText').innerText = fullNames[day];
+      document.querySelectorAll('.day-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.innerText.startsWith(day));
+      });
+      renderTimetable();
+    }
+    function addPeriodToDay() {
+      const subj = prompt("Subject Name:");
+      if (!subj) return;
+      const time = prompt("Class Time (e.g. 10:00 - 11:00 AM):", "10:00 - 11:00 AM") || "TBD";
+      if (!routine[activeDay]) routine[activeDay] = [];
+      routine[activeDay].push({ time, subj });
+
+      if (!subjects.some(s => s.name.toLowerCase() === subj.toLowerCase())) {
+        subjects.push({ name: subj, attended: 0, total: 0 });
+      }
+      saveAll();
+    }
+    function deletePeriod(idx) {
+      routine[activeDay].splice(idx, 1);
+      saveAll();
+    }
+    function markFromRoutine(subjName, isPresent) {
+      const s = subjects.find(item => item.name.toLowerCase() === subjName.toLowerCase());
+      if (s) {
+        if (isPresent) { s.attended += 1; s.total += 1; bumpStreak(); }
+        else { s.total += 1; }
+        saveAll();
+      }
+    }
+    function renderTimetable() {
+      const c = document.getElementById('periodsContainer');
+      c.innerHTML = '';
+      const list = routine[activeDay] || [];
+      if (list.length === 0) {
+        c.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:18px; color:var(--text-dim); font-size:13px; background:rgba(255,255,255,0.02); border-radius:10px;">🎉 Weekend / No regular classes scheduled for ${document.getElementById('activeDayText').innerText}.<br><span style="font-size:11px; opacity:0.8;">Have an extra lecture? Click '+ Add Period' above!</span></div>`;
         return;
       }
-      completeLogin(name, degree);
+      list.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'period-card';
+        div.innerHTML = `
+          <button class="period-del" onclick="deletePeriod(${idx})"><i data-lucide="x" style="width:13px;"></i></button>
+          <div class="period-time"><i data-lucide="clock" style="width:12px; display:inline;"></i> ${p.time}</div>
+          <div class="period-name">${p.subj}</div>
+          <div class="period-actions">
+            <button class="period-btn btn-p" onclick="markFromRoutine('${p.subj}', true)">+ Present</button>
+            <button class="period-btn btn-b" onclick="markFromRoutine('${p.subj}', false)">+ Bunk</button>
+          </div>
+        `;
+        c.appendChild(div);
+      });
+      if (window.lucide) lucide.createIcons();
     }
 
-    function completeLogin(name, degree) {
-      currentUser = { name, degree };
-      localStorage.setItem("bm_user_auth_v6", JSON.stringify(currentUser));
-      document.getElementById("authScreen").style.display = "none";
-      updateHeaderUser();
-
-      const stored = localStorage.getItem("bm_courses_v6");
-      if (stored) {
-        courses = JSON.parse(stored);
-      } else {
-        loadDefaultCoursesForDegree(degree);
-      }
-      renderDashboard();
-    }
-
-    function logoutStudent() {
-      localStorage.removeItem("bm_user_auth_v6");
-      location.reload();
-    }
-
-    function persist() {
-      localStorage.setItem("bm_courses_v6", JSON.stringify(courses));
-    }
-
-    function calculateSubjectMetrics(attended, total) {
-      if (total === 0) return { pct: 0, runwayText: "No sessions recorded", isSafe: true };
-      const pct = (attended / total) * 100;
-      
-      if (pct >= MINIMUM_CRITERIA) {
-        const bunkable = Math.floor((attended * 100) / MINIMUM_CRITERIA - total);
-        return {
-          pct: pct,
-          isSafe: true,
-          runwayText: bunkable > 0 
-            ? `Safe: Skip next ${bunkable} lecture${bunkable > 1 ? 's' : ''}` 
-            : `Borderline safe: Zero skips permitted`
-        };
-      } else {
-        const needed = Math.ceil((MINIMUM_CRITERIA * total - 100 * attended) / (100 - MINIMUM_CRITERIA));
-        return {
-          pct: pct,
-          isSafe: false,
-          runwayText: `Deficit: Attend next ${needed} classes straight`
-        };
+    function addNewSubject() {
+      const name = prompt("Enter Subject Name:");
+      if (name && name.trim()) {
+        subjects.push({ name: name.trim(), attended: 12, total: 15 });
+        saveAll();
       }
     }
+    function deleteSubject(idx) {
+      if (confirm(`Delete ${subjects[idx].name}?`)) {
+        subjects.splice(idx, 1);
+        saveAll();
+      }
+    }
+    function updateAttendance(idx, deltaAttended, deltaTotal) {
+      subjects[idx].attended = Math.max(0, subjects[idx].attended + deltaAttended);
+      subjects[idx].total = Math.max(subjects[idx].attended, subjects[idx].total + deltaTotal);
+      if (deltaAttended > 0) bumpStreak();
+      saveAll();
+    }
+    function updateThreshold(val) {
+      threshold = parseInt(val);
+      document.getElementById('thresholdVal').innerText = threshold + "%";
+      localStorage.setItem('bm_threshold', threshold);
+      render();
+    }
+    function saveAll() {
+      localStorage.setItem('bm_subjects', JSON.stringify(subjects));
+      localStorage.setItem('bm_routine', JSON.stringify(routine));
+      render();
+    }
 
-    function renderDashboard() {
-      const catalogEl = document.getElementById("subjectCatalog");
-      catalogEl.innerHTML = "";
-      document.getElementById("courseCount").innerText = courses.length;
+    function render() {
+      renderTimetable();
+      let totClasses = 0, totAttended = 0;
+      const listContainer = document.getElementById('subjectList');
+      listContainer.innerHTML = '';
+      document.getElementById('subjectCount').innerText = subjects.length;
 
-      let grandTotal = 0;
-      let grandAttended = 0;
+      subjects.forEach((s, idx) => {
+        totClasses += s.total;
+        totAttended += s.attended;
+        const pct = s.total === 0 ? 100 : Math.round((s.attended / s.total) * 100);
+        const isSafe = pct >= threshold;
 
-      courses.forEach((item, index) => {
-        grandTotal += item.total;
-        grandAttended += item.attended;
+        let runwayText = "";
+        if (isSafe) {
+          const canBunk = Math.floor((s.attended - (threshold / 100) * s.total) / (threshold / 100));
+          runwayText = `Safe: Bunk up to ${canBunk} class${canBunk === 1 ? '' : 'es'}`;
+        } else {
+          const req = Math.ceil(((threshold / 100) * s.total - s.attended) / (1 - threshold / 100));
+          runwayText = `Risk: Attend next ${req} class${req === 1 ? '' : 'es'} straight`;
+        }
 
-        const metrics = calculateSubjectMetrics(item.attended, item.total);
-        const colorVar = metrics.isSafe ? "var(--success)" : "var(--danger)";
-        const bgVar = metrics.isSafe ? "var(--success-bg)" : "var(--danger-bg)";
-
-        const card = document.createElement("div");
-        card.className = "subject-card";
+        const card = document.createElement('div');
+        card.className = 'subject-card';
         card.innerHTML = `
-          <div class="sub-top">
-            <div class="sub-name-group">
-              <h4>${item.name}</h4>
-              <div class="sub-meta">
-                <span>${item.code || 'CRS-' + (index + 1)}</span>
-                <span>·</span>
-                <span>${item.attended}/${item.total} Attended</span>
-              </div>
+          <div class="subj-top">
+            <div>
+              <div class="subj-name">${s.name}</div>
+              <div class="subj-runway ${isSafe ? 'safe' : 'danger'}">${runwayText}</div>
             </div>
-            <div class="sub-right">
-              <div class="sub-score-badge" style="color: ${colorVar}; background: ${bgVar};">
-                ${metrics.pct.toFixed(1)}%
-              </div>
-              <button class="btn-icon-sub" title="Edit Course" onclick="openCourseModal(${index})">✏️</button>
-              <button class="btn-icon-sub" title="Delete Course" onclick="deleteCourse(${index})">🗑️</button>
-            </div>
+            <div style="font-size: 20px; font-weight:800; color: ${isSafe ? 'var(--success)' : 'var(--danger)'}">${pct}%</div>
           </div>
-          <div class="sub-progress-track">
-            <div class="sub-progress-bar" style="width: ${Math.min(metrics.pct, 100)}%; background: ${colorVar};"></div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${pct}%; background: ${isSafe ? 'var(--success)' : 'var(--danger)'}"></div>
           </div>
-          <div class="sub-bottom">
-            <span class="sub-runway-text" style="color: ${colorVar};">${metrics.runwayText}</span>
-            <div class="action-controls">
-              <button class="btn-action btn-present" onclick="markAttendance(${index}, true)">+1 Present</button>
-              <button class="btn-action btn-bunk" onclick="markAttendance(${index}, false)">+1 Skip</button>
+          <div class="counter-row">
+            <span class="counter-badge">${s.attended} / ${s.total} attended</span>
+            <div class="actions">
+              <button class="btn-action" onclick="updateAttendance(${idx}, 1, 1)" style="color:var(--success);">+ Present</button>
+              <button class="btn-action" onclick="updateAttendance(${idx}, 0, 1)" style="color:var(--danger);">+ Bunk</button>
+              <button class="btn-action" style="color:var(--danger);" onclick="deleteSubject(${idx})"><i data-lucide="trash-2" style="width:13px;"></i></button>
             </div>
           </div>
         `;
-        catalogEl.appendChild(card);
+        listContainer.appendChild(card);
       });
 
-      const overallPct = grandTotal > 0 ? (grandAttended / grandTotal) * 100 : 0;
-      document.getElementById("aggregatePercentage").innerText = `${overallPct.toFixed(1)}%`;
+      document.getElementById('totalClasses').innerText = totClasses;
+      document.getElementById('attendedClasses').innerText = totAttended;
+      const overallPct = totClasses === 0 ? 100 : Math.round((totAttended / totClasses) * 100);
+      document.getElementById('aggregatePercent').innerText = overallPct + "%";
 
-      const ringFill = document.getElementById("aggregateRing");
-      const offset = 283 - (Math.min(overallPct, 100) / 100) * 283;
-      ringFill.style.strokeDashoffset = offset;
-      ringFill.style.stroke = overallPct >= MINIMUM_CRITERIA ? "var(--success)" : "var(--danger)";
-
-      const summaryEl = document.getElementById("aggregateSummary");
-      const standingTag = document.getElementById("standingTag");
-      const coinBalance = document.getElementById("coinBalance");
-
-      if (overallPct >= MINIMUM_CRITERIA) {
-        const totalBunkBuffer = Math.floor((grandAttended * 100) / MINIMUM_CRITERIA - grandTotal);
-        summaryEl.innerHTML = `Safe across semester. Collective buffer: <b>${totalBunkBuffer} safe bunks</b>.`;
-        coinBalance.innerText = `🪙 ${totalBunkBuffer} Bunk Credits`;
+      const pill = document.getElementById('statusPill');
+      if (overallPct >= threshold) {
+        pill.className = 'pill safe';
+        pill.innerText = 'SAFE ZONE';
+        const totalBunks = Math.floor((totAttended - (threshold / 100) * totClasses) / (threshold / 100));
+        document.getElementById('safeBunkCount').innerText = Math.max(0, totalBunks);
       } else {
-        const recoveryLectures = Math.ceil((MINIMUM_CRITERIA * grandTotal - 100 * grandAttended) / (100 - MINIMUM_CRITERIA));
-        summaryEl.innerHTML = `Below ${MINIMUM_CRITERIA}% minimum! Attend <b>${recoveryLectures} consecutive lectures</b> to avoid detention.`;
-        coinBalance.innerText = `🪙 0 Bunk Credits (Deficit)`;
+        pill.className = 'pill danger';
+        pill.innerText = 'DEBAR RISK';
+        document.getElementById('safeBunkCount').innerText = '0';
       }
 
-      if (overallPct >= 90) standingTag.innerText = "Dean's Pet 🎓";
-      else if (overallPct >= 80) standingTag.innerText = "Cruise Control 😎";
-      else if (overallPct >= 75) standingTag.innerText = "Edge Runner ⚠️";
-      else standingTag.innerText = "Detention Watch 🚨";
-
-      persist();
+      if (window.lucide) lucide.createIcons();
     }
 
-    function markAttendance(index, isPresent) {
-      courses[index].total += 1;
-      if (isPresent) courses[index].attended += 1;
-      renderDashboard();
-    }
-
-    function runBunkSimulation(skippedLectures) {
-      const skipped = parseInt(skippedLectures) || 0;
-      document.getElementById("simBunkCount").innerText = `${skipped} Classes Skipped`;
-
-      let grandTotal = 0;
-      let grandAttended = 0;
-      courses.forEach(c => {
-        grandTotal += c.total;
-        grandAttended += c.attended;
-      });
-
-      const simulatedTotal = grandTotal + skipped;
-      const simulatedPct = simulatedTotal > 0 ? ((grandAttended / simulatedTotal) * 100).toFixed(1) : 0;
-      const simForecastEl = document.getElementById("simForecast");
-
-      if (skipped === 0) {
-        simForecastEl.innerHTML = "Slide to preview your attendance drop before skipping upcoming classes.";
-        return;
-      }
-
-      if (simulatedPct >= MINIMUM_CRITERIA) {
-        simForecastEl.innerHTML = `Projected: <span style="color: var(--success); font-weight: 700;">${simulatedPct}%</span> (Safe).`;
-      } else {
-        simForecastEl.innerHTML = `Projected: <span style="color: var(--danger); font-weight: 700;">${simulatedPct}%</span> (Detention Risk!).`;
-      }
-    }
-
-    // Modal Control: Course Edit / Add
-    function openCourseModal(index) {
-      editIndex = index;
-      const modal = document.getElementById("courseModal");
-      if (index !== null) {
-        document.getElementById("courseModalTitle").innerText = "Edit Course";
-        document.getElementById("courseNameInput").value = courses[index].name;
-        document.getElementById("courseCodeInput").value = courses[index].code || "";
-        document.getElementById("courseAttendedInput").value = courses[index].attended;
-        document.getElementById("courseTotalInput").value = courses[index].total;
-      } else {
-        document.getElementById("courseModalTitle").innerText = "Add New Course";
-        document.getElementById("courseNameInput").value = "";
-        document.getElementById("courseCodeInput").value = "";
-        document.getElementById("courseAttendedInput").value = "15";
-        document.getElementById("courseTotalInput").value = "20";
-      }
-      modal.classList.add("active");
-    }
-
-    function closeCourseModal() {
-      document.getElementById("courseModal").classList.remove("active");
-    }
-
-    function saveCourseDetail() {
-      const name = document.getElementById("courseNameInput").value.trim();
-      const code = document.getElementById("courseCodeInput").value.trim() || "CRS-" + (courses.length + 1);
-      const attended = parseInt(document.getElementById("courseAttendedInput").value) || 0;
-      const total = parseInt(document.getElementById("courseTotalInput").value) || 1;
-
-      if (!name) {
-        alert("Please enter course name!");
-        return;
-      }
-
-      if (editIndex !== null) {
-        courses[editIndex] = { name, code, attended: Math.min(attended, total), total };
-      } else {
-        courses.push({ name, code, attended: Math.min(attended, total), total });
-      }
-
-      closeCourseModal();
-      renderDashboard();
-    }
-
-    function deleteCourse(index) {
-      if (confirm(`Remove "${courses[index].name}"?`)) {
-        courses.splice(index, 1);
-        renderDashboard();
-      }
-    }
-
-    // 1-Click Class Sharing Link (Attaching Student Name + Degree)
-    function shareClassLink() {
-      const payload = {
-        sender: currentUser ? currentUser.name : "A Classmate",
-        degree: currentUser ? currentUser.degree : "College Course",
-        courses: courses
-      };
-      const token = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-      const shareUrl = `${window.location.origin}${window.location.pathname}?schedule=${token}`;
-
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        showToast("Class Schedule Link Copied! Share on WhatsApp 🚀");
-      }).catch(() => {
-        prompt("Copy your Class Schedule Link:", shareUrl);
-      });
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById("toastMsg");
-      toast.innerText = msg;
-      toast.style.display = "block";
-      setTimeout(() => { toast.style.display = "none"; }, 3500);
-    }
-
-    // Modal Control & Timetable Switcher
-    function openSyncModal() {
-      document.getElementById("syncModal").classList.add("active");
-    }
-
-    function closeSyncModal() {
-      document.getElementById("syncModal").classList.remove("active");
-    }
-
-    function switchSyncTab(tab) {
-      const tabs = ['preset', 'ocr', 'paste', 'any'];
-      tabs.forEach(t => {
-        document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = (t === tab) ? "flex" : "none";
-        document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1) + "Btn").classList.toggle("active", t === tab);
-      });
-    }
-
-    function loadStreamPreset() {
-      const stream = document.getElementById("presetStreamSelect").value;
-      if (STREAM_PRESETS[stream]) {
-        courses = JSON.parse(JSON.stringify(STREAM_PRESETS[stream]));
-      }
-      closeSyncModal();
-      renderDashboard();
-      showToast("Loaded Stream Template! Tap ✏️ to customize electives.");
-    }
-
-    // OCR Engine for screenshots
-    async function processScreenshot(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const statusEl = document.getElementById("ocrStatus");
-      statusEl.style.display = "block";
-      statusEl.innerText = "🧠 Scanning timetable image with client AI... (0%)";
-
-      try {
-        const worker = await Tesseract.createWorker('eng');
-        const ret = await worker.recognize(file);
-        await worker.terminate();
-
-        const lines = ret.data.text.split('\n')
-          .map(l => l.replace(/[^a-zA-Z0-9\s]/g, '').trim())
-          .filter(l => l.length > 4 && !/Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Time|Period|AM|PM|Room/i.test(l));
-
-        const uniqueSubjects = [...new Set(lines)].slice(0, 6);
-
-        if (uniqueSubjects.length > 0) {
-          courses = uniqueSubjects.map((name, i) => ({
-            code: "SCAN-" + (101 + i),
-            name: name,
-            attended: 18,
-            total: 22
-          }));
-          statusEl.style.display = "none";
-          closeSyncModal();
-          renderDashboard();
-          showToast("Scanned & Created Course Cards!");
-        } else {
-          statusEl.innerText = "Could not parse clearly. Please try Paste Text or Presets.";
-        }
-      } catch (err) {
-        statusEl.innerText = "OCR processing failed. Please use Paste or Presets.";
-      }
-    }
-
-    function importRawSubjects() {
-      const text = document.getElementById("rawSubjectInput").value.trim();
-      if (!text) return;
-      const subjects = text.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
-      if (subjects.length > 0) {
-        courses = subjects.map((sub, i) => ({
-          code: "SUB-" + (101 + i),
-          name: sub,
-          attended: 18,
-          total: 24
-        }));
-        closeSyncModal();
-        renderDashboard();
-        showToast("Created Courses from Raw Text!");
-      }
-    }
-
-    function updateCriteria(val) {
-      MINIMUM_CRITERIA = parseInt(val) || 75;
-      renderDashboard();
-    }
-
-    window.onload = init;
+    init();
   </script>
 </body>
 </html>
